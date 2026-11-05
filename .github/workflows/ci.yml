@@ -1,0 +1,38 @@
+
+name: CI MLOps TP6
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dependances
+        run: pip install -r requirements-ci.txt
+
+      - name: Preparer les donnees
+        run: cp ci-data/transactions.csv data/transactions.csv
+
+      - name: Executer le pipeline DVC
+        run: dvc repro
+
+      - name: Verifier la qualite
+        run: python verifier_qualite.py
+
+      - name: Archiver les rapports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-mlops
+          path: reports/
